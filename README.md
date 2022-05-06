@@ -1,6 +1,6 @@
-# On/Off devices and power regulators for Automate-Everything.
+# Welcome
 
-This is a plugin for [Automate-Everything](https://github.com/tomaszbabiuk/automate-everything)
+This is a plugin for [Automate-Everything](https://github.com/tomaszbabiuk/automate-everything). It provides On/Off devices and power regulators objects.
 
 # Directory setup
 ```bash
