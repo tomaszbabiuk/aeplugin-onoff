@@ -84,13 +84,13 @@ class OnOffDeviceConfigurable(
             states[STATE_ON] = State.buildControlState(
                 STATE_ON,
                 R.state_on,
-                R.state_on,
+                R.action_on,
                 isSignaled = true
             )
             states[STATE_OFF] = State.buildControlState(
                 STATE_OFF,
                 R.state_off,
-                R.state_off,
+                R.action_off,
             )
             return states
         }

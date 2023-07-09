@@ -29,7 +29,7 @@ compileKotlin {
 jar {
     manifest {
         attributes 'Plugin-Class': "eu.automateeverything.onoffplugin.OnOffPlugin",
-                'Plugin-Id': "afore",
+                'Plugin-Id': "onoff",
                 'Plugin-Version': "0.1.0",
                 'Plugin-Provider': "Tomasz Babiuk",
                 'Plugin-Dependencies': ""
