@@ -15,26 +15,26 @@
 
 package eu.automateeverything.onoffplugin
 
-import eu.automateeverything.onoffplugin.OnOffDeviceConfigurable.Companion.STATE_OFF
-import eu.automateeverything.onoffplugin.OnOffDeviceConfigurable.Companion.STATE_ON
 import eu.automateeverything.data.automation.NextStatesDto
 import eu.automateeverything.data.automation.State
 import eu.automateeverything.data.configurables.ControlType
 import eu.automateeverything.data.instances.InstanceDto
 import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
+import eu.automateeverything.onoffplugin.OnOffDeviceConfigurable.Companion.STATE_OFF
+import eu.automateeverything.onoffplugin.OnOffDeviceConfigurable.Companion.STATE_ON
 import java.lang.Exception
-import kotlin.Throws
 import java.util.Calendar
+import kotlin.Throws
 
 class OnOffDeviceAutomationUnit(
     eventBus: EventBus,
     instance: InstanceDto,
     name: String,
     states: Map<String, State>,
-    private val controlPort: OutputPort<Relay>,
+    private val controlPort: Port<Relay>,
     private val automationOnly: Boolean
 ) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
 
@@ -48,7 +48,7 @@ class OnOffDeviceAutomationUnit(
     }
 
     override val usedPortsIds: Array<String>
-        get() = arrayOf(controlPort.id)
+        get() = arrayOf(controlPort.portId)
 
     override fun calculateInternal(now: Calendar) {
         if (controlPort.read() == Relay.ON) {

@@ -20,22 +20,30 @@ import eu.automateeverything.data.hardware.PortValue
 import eu.automateeverything.data.instances.InstanceDto
 import eu.automateeverything.domain.automation.*
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import java.math.BigDecimal
 import java.util.*
 
-abstract class SinglePortRegulatorAutomationUnit<V: PortValue>(
+abstract class SinglePortRegulatorAutomationUnit<V : PortValue>(
     eventBus: EventBus,
     name: String,
     instance: InstanceDto,
-    private val controlPort: OutputPort<V>,
+    private val controlPort: Port<V>,
     controlType: ControlType
-) : AutomationUnitBase<V>(eventBus, name, instance, controlType, buildEvaluationResult(controlPort.read())), ControllerAutomationUnit<V> {
+) :
+    AutomationUnitBase<V>(
+        eventBus,
+        name,
+        instance,
+        controlType,
+        buildEvaluationResult(controlPort.read())
+    ),
+    ControllerAutomationUnit<V> {
 
     private var requestedValue: V? = null
 
     override val usedPortsIds: Array<String>
-        get() = arrayOf(controlPort.id)
+        get() = arrayOf(controlPort.portId)
 
     override fun calculateInternal(now: Calendar) {
         val actualLevel = controlPort.read()
@@ -48,7 +56,7 @@ abstract class SinglePortRegulatorAutomationUnit<V: PortValue>(
         }
     }
 
-    private fun buildEvaluationResult(level: V) : EvaluationResult<V> {
+    private fun buildEvaluationResult(level: V): EvaluationResult<V> {
         return EvaluationResult(
             interfaceValue = level.toFormattedString(),
             value = level,

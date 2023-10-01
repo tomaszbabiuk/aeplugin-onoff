@@ -15,10 +15,6 @@
 
 package eu.automateeverything.onoffplugin
 
-import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_OFF
-import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_OFF_BREAK
-import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_ON
-import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_ON_COUNTING
 import eu.automateeverything.data.automation.NextStatesDto
 import eu.automateeverything.data.automation.State
 import eu.automateeverything.data.configurables.ControlType
@@ -27,12 +23,16 @@ import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.configurable.Duration
 import eu.automateeverything.domain.configurable.StateDeviceConfigurable.Companion.STATE_UNKNOWN
 import eu.automateeverything.domain.events.EventBus
-import eu.automateeverything.domain.hardware.OutputPort
+import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
+import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_OFF
+import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_OFF_BREAK
+import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_ON
+import eu.automateeverything.onoffplugin.TimedOnOffDeviceConfigurable.Companion.STATE_ON_COUNTING
 import java.lang.Exception
 import java.math.BigDecimal
-import kotlin.Throws
 import java.util.Calendar
+import kotlin.Throws
 
 class TimedOnOffDeviceAutomationUnit(
     eventBus: EventBus,
@@ -42,7 +42,7 @@ class TimedOnOffDeviceAutomationUnit(
     private val maxWorkingTime: Duration,
     private val breakTime: Duration,
     states: Map<String, State>,
-    private val controlPort: OutputPort<Relay>,
+    private val controlPort: Port<Relay>,
     private val automationOnly: Boolean
 ) : StateDeviceAutomationUnitBase(eventBus, instance, name, ControlType.States, states, false) {
 
@@ -92,7 +92,7 @@ class TimedOnOffDeviceAutomationUnit(
     }
 
     override val usedPortsIds: Array<String>
-        get() = arrayOf(controlPort.id)
+        get() = arrayOf(controlPort.portId)
 
     override fun calculateInternal(now: Calendar) {
         fun changeStateToOnOrOnCounting() {
@@ -103,19 +103,22 @@ class TimedOnOffDeviceAutomationUnit(
             }
         }
 
-        val portReading = (controlPort.requestedValue?.value ?: controlPort.read().value) == BigDecimal.ONE
+        val portReading =
+            (controlPort.requestedValue?.value ?: controlPort.read().value) == BigDecimal.ONE
 
-        val onTime = if (portReading) {
+        val onTime =
+            if (portReading) {
                 now.timeInMillis - onSince
             } else {
                 0
             }
 
-        val offTime = if (portReading) {
-            0
-        } else {
-            now.timeInMillis - offSince
-        }
+        val offTime =
+            if (portReading) {
+                0
+            } else {
+                now.timeInMillis - offSince
+            }
 
         when (currentState.id) {
             STATE_UNKNOWN -> {
@@ -125,14 +128,12 @@ class TimedOnOffDeviceAutomationUnit(
                     changeState(STATE_OFF)
                 }
             }
-
             STATE_ON_COUNTING -> {
                 val minTimeElapsed = onTime > minWorkingTime.seconds * 1000
                 if (minTimeElapsed) {
                     changeState(STATE_ON)
                 }
             }
-
             STATE_ON -> {
                 if (maxWorkingTime.seconds > 0) {
                     val shouldBeDisabled = onTime > maxWorkingTime.seconds * 1000
@@ -146,7 +147,6 @@ class TimedOnOffDeviceAutomationUnit(
                     }
                 }
             }
-
             STATE_OFF_BREAK -> {
                 if (breakTime.seconds > 0) {
                     val shouldBeEnabled = offTime > breakTime.seconds * 1000
@@ -158,16 +158,19 @@ class TimedOnOffDeviceAutomationUnit(
             }
         }
 
-        val newPortReading = (controlPort.requestedValue?.value ?: controlPort.read().value) == BigDecimal.ONE
+        val newPortReading =
+            (controlPort.requestedValue?.value ?: controlPort.read().value) == BigDecimal.ONE
         if (newPortReading) {
             when (currentState.id) {
-                STATE_OFF_BREAK, STATE_OFF -> {
+                STATE_OFF_BREAK,
+                STATE_OFF -> {
                     changeStateToOnOrOnCounting()
                 }
             }
         } else {
             when (currentState.id) {
-                STATE_ON, STATE_ON_COUNTING -> {
+                STATE_ON,
+                STATE_ON_COUNTING -> {
                     changeState(STATE_OFF)
                 }
             }
