@@ -33,7 +33,8 @@ class TimedOnOffDeviceConfigurable(
 
     override val fieldDefinitions: Map<String, FieldDefinition<*>>
         get() {
-            val result: LinkedHashMap<String, FieldDefinition<*>> = LinkedHashMap(super.fieldDefinitions)
+            val result: LinkedHashMap<String, FieldDefinition<*>> =
+                LinkedHashMap(super.fieldDefinitions)
             result[FIELD_PORT] = portField
             result[FIELD_AUTOMATION_ONLY] = automationOnlyField
             result[FIELD_MIN_TIME] = minTimeField
@@ -58,7 +59,8 @@ class TimedOnOffDeviceConfigurable(
         get() = R.configurable_timedonoffdevices_description
 
     override val iconRaw: String
-        get() = """
+        get() =
+            """
             <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
              <g class="layer">
               <title>Layer 1</title>
@@ -92,52 +94,75 @@ class TimedOnOffDeviceConfigurable(
               </g>
              </g>
             </svg>
-        """.trimIndent()
+        """
+                .trimIndent()
 
-    private val portField = RelayOutputPortField(FIELD_PORT, R.field_port_hint, RequiredStringValidator())
+    private val portField =
+        RelayOutputPortField(FIELD_PORT, R.field_port_hint, RequiredStringValidator())
 
     private val minTimeField = DurationField(FIELD_MIN_TIME, R.field_min_working_time, Duration(0))
 
-    private val automationOnlyField = BooleanField(FIELD_AUTOMATION_ONLY, R.field_automation_only_hint, false)
+    private val automationOnlyField =
+        BooleanField(FIELD_AUTOMATION_ONLY, R.field_automation_only_hint, false)
 
-    private val maxTimeField = DurationField(FIELD_MAX_TIME, R.field_max_working_time, Duration(0), object: Validator<Duration> {
-        override val reason: Resource
-            get() = R.validator_max_should_exceed_min_time
+    private val maxTimeField =
+        DurationField(
+            FIELD_MAX_TIME,
+            R.field_max_working_time,
+            Duration(0),
+            object : Validator<Duration> {
+                override val reason: Resource
+                    get() = R.validator_max_should_exceed_min_time
 
-        override fun validate(validatedFieldValue: Duration?, allFields: Map<String, String?>): Boolean {
-            if (validatedFieldValue == null) {
-                return true
+                override fun validate(
+                    validatedFieldValue: Duration?,
+                    allFields: Map<String, String?>
+                ): Boolean {
+                    if (validatedFieldValue == null) {
+                        return true
+                    }
+
+                    val minTimeFieldValueRaw = allFields[FIELD_MIN_TIME]
+                    val minTimeFieldValue =
+                        minTimeField.builder.fromPersistableString(minTimeFieldValueRaw)
+
+                    if (minTimeFieldValue.seconds == 0) {
+                        return true
+                    }
+
+                    return (validatedFieldValue.seconds > minTimeFieldValue.seconds)
+                }
             }
+        )
 
-            val minTimeFieldValueRaw = allFields[FIELD_MIN_TIME]
-            val minTimeFieldValue = minTimeField.builder.fromPersistableString(minTimeFieldValueRaw)
+    private val breakTimeField =
+        DurationField(
+            FIELD_BREAK_TIME,
+            R.field_break_time,
+            Duration(0),
+            object : Validator<Duration> {
+                override val reason: Resource
+                    get() = R.validator_break_invalid_if_no_max_time
 
-            if (minTimeFieldValue.seconds == 0) {
-                return true
+                override fun validate(
+                    validatedFieldValue: Duration?,
+                    allFields: Map<String, String?>
+                ): Boolean {
+                    if (validatedFieldValue == null) {
+                        return true
+                    }
+
+                    if (validatedFieldValue.seconds == 0) {
+                        return true
+                    }
+
+                    val maxTimeFieldValueRaw = allFields[FIELD_MAX_TIME]
+                    val maxTimeFieldValue =
+                        maxTimeField.builder.fromPersistableString(maxTimeFieldValueRaw)
+                    return (maxTimeFieldValue.seconds > 0 && validatedFieldValue.seconds > 0)
+                }
             }
-
-            return (validatedFieldValue.seconds > minTimeFieldValue.seconds)
-        }
-    })
-
-    private val breakTimeField = DurationField(FIELD_BREAK_TIME, R.field_break_time, Duration(0), object: Validator<Duration> {
-        override val reason: Resource
-            get() = R.validator_break_invalid_if_no_max_time
-
-        override fun validate(validatedFieldValue: Duration?, allFields: Map<String, String?>): Boolean {
-            if (validatedFieldValue == null) {
-                return true
-            }
-
-            if (validatedFieldValue.seconds == 0) {
-                return true
-            }
-
-            val maxTimeFieldValueRaw = allFields[FIELD_MAX_TIME]
-            val maxTimeFieldValue = maxTimeField.builder.fromPersistableString(maxTimeFieldValueRaw)
-            return (maxTimeFieldValue.seconds > 0 && validatedFieldValue.seconds > 0)
-        }
-    })
+        )
 
     override fun buildAutomationUnit(instance: InstanceDto): AutomationUnit<State> {
         val portId = extractFieldValue(instance, portField)
@@ -156,37 +181,43 @@ class TimedOnOffDeviceConfigurable(
             breakTime,
             states,
             port,
-            automationOnly)
+            automationOnly
+        )
     }
 
     override val states: Map<String, State>
         get() {
             val states: MutableMap<String, State> = LinkedHashMap()
-            states[STATE_UNKNOWN] = State.buildReadOnlyState(
-                STATE_UNKNOWN,
-                R.state_unknown,
-            )
-            states[STATE_ON] = State.buildControlState(
-                STATE_ON,
-                R.state_on,
-                R.action_on,
-                isSignaled = true,
-            )
-            states[STATE_ON_COUNTING] = State.buildReadOnlyState(
-                STATE_ON_COUNTING,
-                R.state_on_counting,
-                isSignaled = true,
-            )
-            states[STATE_OFF_BREAK] = State.buildReadOnlyState(
-                STATE_OFF_BREAK,
-                R.state_off_break,
-                isSignaled = true,
-            )
-            states[STATE_OFF] = State.buildControlState(
-                STATE_OFF,
-                R.state_forced_off,
-                R.action_off,
-            )
+            states[STATE_INIT] =
+                State.buildReadOnlyState(
+                    STATE_INIT,
+                    R.state_unknown,
+                )
+            states[STATE_ON] =
+                State.buildControlState(
+                    STATE_ON,
+                    R.state_on,
+                    R.action_on,
+                    isSignaled = true,
+                )
+            states[STATE_ON_COUNTING] =
+                State.buildReadOnlyState(
+                    STATE_ON_COUNTING,
+                    R.state_on_counting,
+                    isSignaled = true,
+                )
+            states[STATE_OFF_BREAK] =
+                State.buildReadOnlyState(
+                    STATE_OFF_BREAK,
+                    R.state_off_break,
+                    isSignaled = true,
+                )
+            states[STATE_OFF] =
+                State.buildControlState(
+                    STATE_OFF,
+                    R.state_forced_off,
+                    R.action_off,
+                )
             return states
         }
 

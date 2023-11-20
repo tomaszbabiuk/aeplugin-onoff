@@ -21,7 +21,7 @@ import eu.automateeverything.data.configurables.ControlType
 import eu.automateeverything.data.instances.InstanceDto
 import eu.automateeverything.domain.automation.StateDeviceAutomationUnitBase
 import eu.automateeverything.domain.configurable.Duration
-import eu.automateeverything.domain.configurable.StateDeviceConfigurable.Companion.STATE_UNKNOWN
+import eu.automateeverything.domain.configurable.StateDeviceConfigurable.Companion.STATE_INIT
 import eu.automateeverything.domain.events.EventBus
 import eu.automateeverything.domain.hardware.Port
 import eu.automateeverything.domain.hardware.Relay
@@ -121,7 +121,7 @@ class TimedOnOffDeviceAutomationUnit(
             }
 
         when (currentState.id) {
-            STATE_UNKNOWN -> {
+            STATE_INIT -> {
                 if (portReading) {
                     changeStateToOnOrOnCounting()
                 } else {
